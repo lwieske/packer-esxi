@@ -1,0 +1,67 @@
+{
+  "variables": {
+    "profile": "20140404001",
+    "build": "1746018"
+  },
+  "builders": [
+    {
+      "type": "vmware-iso",
+      "headless": true,
+      "vm_name": "esxi550-{{ user `build`}}",
+      "vmdk_name": "esxi550-{{ user `build`}}",
+      "disk_type_id": "0",
+      "boot_command": [
+        "O<wait>",
+        " ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+      ],
+      "boot_wait": "15s",
+      "disk_size": 20480,
+      "guest_os_type": "vmkernel5",
+      "http_directory": "kickstart",
+      "iso_checksum": "1918c08300840f7e76c2492969466de02d5bbe16d03e2027f6c25568a0b7ae2e",
+      "iso_checksum_type": "sha256",
+      "iso_urls": [
+        "iso/VMware-VMvisor-Installer-5.5.0-1331820.x86_64.iso"
+      ],
+      "ssh_username": "root",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_wait_timeout": "15m",
+      "shutdown_command": "/bin/halt",
+      "vmx_data": {
+        "memsize": "4096",
+        "numvcpus": "2",
+        "cpuid.coresPerSocket": "2",
+        "vhv.enable": "TRUE",
+        "RemoteDisplay.vnc.webSocket.port": "6550"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/esxi550-update.sh"
+      ],
+      "environment_vars": [
+        "PROFILE={{ user `profile`}}"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "scripts/local.sh",
+      "destination": "/etc/rc.local.d/local.sh"
+    },
+    {
+      "type": "file",
+      "source": "publickey/vagrant.pub",
+      "destination": "/etc/ssh/keys-root/authorized_keys"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "output": "{{.Provider}}/esxi550-{{ user `build`}}.box"
+    }
+  ]
+}
